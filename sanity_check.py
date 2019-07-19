@@ -36,7 +36,7 @@ curr_run=0;
 table_name_arr = ['SS_RRSET','SS_EXP_RRSET','SS_RRSIG','SS_EXP_RRSIG',
 		'SS_RR','SS_EXP_RR','SS_DNSKEY','SS_EXP_DNSKEY',
 		'SS_DS','SS_EXP_DS','SS_TLSA','SS_EXP_TLSA','SS_RRSET_EXP_REL',
-		'SS_RUN_STATS', 'SS_ZONE_STATS', 'SS_KEY_STATS', 'SS_NAMESERVER_STATS', 'SS_TLSA_STATS']
+		'SS_RUN_STATS', 'SS_ZONE_STATS', 'SS_KEY_STATS', 'SS_NAMESERVER_STATS', 'SS_TLSA_STATS','SS_ZONE']
 
 table_count_arr = []
 
@@ -58,7 +58,7 @@ def main():
 		index2 += 1
 
 	#Sanity check for SS_RRSIG, SS_EXP_RRSIG, SS_RR, SS_EXP_RR, SS_DNSKEY, SS_EXP_DNSKEY, SS_DS, SS_EXP_DS, SS_TLSA, SS_EXP_TLSA
-	index3=2
+	index3=0
 	while(index3 < 11): 
 		check_sanity_set_tables(index3, table_name_arr[index3], index3+1, table_name_arr[index3+1])
 		index3 += 2
@@ -154,12 +154,31 @@ def check_sanity_set_tables(a, str1, b, str2):
 		status=0
 		print("--> Rows have been dropped from "+str1+" table\n")
 	
-	if(table_count_arr[a][3] > 0):
-		if(table_count_arr[0][3] > 0):
-			pass
-		else:
-			status=0
-			print("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
+	if(a==0 and b==1):
+		status=0
+		if(table_count_arr[a][3] > 0):
+			index=2
+			while(index<=10):
+				if(table_count_arr[index][3] > 0):
+					status=1
+				index +=2
+		elif(table_count_arr[a][3] == 0):
+			index=2
+			while(index<=10):
+				if(table_count_arr[index][3] != 0):
+					print("--> The sanity check for "+str1+": FAILED - Condition 1\n")
+					return
+				else:
+					status=1
+				index +=2
+	else:
+		if(table_count_arr[a][3] > 0):
+			if(table_count_arr[0][3] > 0):
+				pass
+			else:
+				status=0
+				print("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
+
 
 	if status==1:
 		print("--> The sanity check for "+str1+": PASSED\n")
@@ -264,22 +283,28 @@ def check_referential_integrity(a, str1, b, str2):
 
 	join_query_rrset = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID inner join "+table_name_arr[2]+" on "+table_name_arr[2]+".SET_ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
 	print("join_query_rrset "+join_query_rrset)
+	print("The SS_RRSET ID tested for referential integrity: ",rrset_id)
 	cursor.execute(join_query_rrset, (rrset_id))
 	result3 = cursor.fetchall()
+	print(result3)
 	if(len(result3)==0):
 		print("Referential integrity for SS_RRSET failed")
 
 	join_query_exp_rrset = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID inner join "+table_name_arr[3]+" on "+table_name_arr[3]+".SET_ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
 	print("join_query_exp_rrset "+join_query_exp_rrset)
+	print("The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
 	cursor.execute(join_query_exp_rrset, (exp_rrset_id))
 	result4 = cursor.fetchall()
+	print(result4)
 	if(len(result4)==0):
 		print("Referential integrity for SS_EXP_RRSET failed")
 
 	join_query_rrset_exp_rel = "SELECT "+table_name_arr[1]+".ID from "+table_name_arr[1]+" inner join "+table_name_arr[12]+" on "+table_name_arr[1]+".ID = "+table_name_arr[12]+".EXP_SET_ID where "+table_name_arr[1]+".ID=%s"
 	print("join_query_rrset_exp_rel "+join_query_rrset_exp_rel)
+	print("The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 	cursor.execute(join_query_rrset_exp_rel, (exp_rrset_id))
 	result5 = cursor.fetchall()
+	print(result5)
 	if(len(result5)==0):
 		print("Referential integrity for SS_RRSET_EXP_REL failed")
 
