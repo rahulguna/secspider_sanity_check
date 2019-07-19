@@ -99,6 +99,7 @@ def calculate_expected_behaviour(str1):
 	
 	temp1 = int(avg_total_count/avg_count_of_zone)
 	expected_total_count = temp1*curr_month_zone_count
+	print(avg_total_count, avg_count_of_zone, expected_total_count)
 
 	if((expected_total_count - 100) < 0):
 		ROWS_COUNT_FROM = 0
