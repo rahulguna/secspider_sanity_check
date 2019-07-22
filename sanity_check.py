@@ -237,74 +237,92 @@ def check_referential_integrity(a, str1, b, str2):
 	for item in cursor:
 		max_exp_rrset = item[0]
 
-	rrset_id=0
-	rrset_rr_type=0
 	while True:
-		random1 = random.randint(max_rrset-table_count_arr[a][3], max_rrset) 
-		select_query_rrset = "SELECT ID,RR_TYPE from "+str1+" WHERE ID=%s"
-		cursor.execute(select_query_rrset, (random1))
-		result1 = cursor.fetchone()
-		if(len(result1)!=0):
-			rrset_id = result1[0]
-			rrset_rr_type = result1[1]
+		rrset_id=0
+		rrset_rr_type=0
+		while True:
+			random1 = random.randint(max_rrset-table_count_arr[a][3], max_rrset) 
+			select_query_rrset = "SELECT ID,RR_TYPE from "+str1+" WHERE ID=%s"
+			cursor.execute(select_query_rrset, (random1))
+			result1 = cursor.fetchone()
+			if(len(result1)!=0):
+				rrset_id = result1[0]
+				rrset_rr_type = result1[1]
+				break
+
+		join_table_rrset = ""
+		
+		if(rrset_rr_type == 48):
+			join_table_rrset = table_name_arr[6]
+		elif(rrset_rr_type == 43):
+			join_table_rrset = table_name_arr[8]
+		elif(rrset_rr_type == 52):
+			join_table_rrset = table_name_arr[10]
+		elif(rrset_rr_type == 2 or rrset_rr_type == 6):
+			join_table_rrset = table_name_arr[4]
+
+		join_query_rrset = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID inner join "+table_name_arr[2]+" on "+table_name_arr[2]+".SET_ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
+		join_query_rrset_without_rrsig = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
+		print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
+		cursor.execute(join_query_rrset, (rrset_id))
+		result2 = cursor.fetchall()
+		print(result2)
+		if(len(result2)==0):
+			cursor.execute(join_query_rrset_without_rrsig, (rrset_id))
+			result3 = cursor.fetchall()
+			print(result3)
+			if(len(result3)==0):
+				print("--> Referential integrity for SS_RRSET failed\n")
+				break
+		else:
 			break
 
-	exp_rrset_id=0
-	exp_rr_type=0
 	while True:
-		random2 = random.randint(max_exp_rrset-table_count_arr[b][3], max_exp_rrset) 
-		select_query_exp_rrset = "SELECT ID,RR_TYPE from "+str2+" WHERE ID=%s"
-		cursor.execute(select_query_exp_rrset, (random2))
-		result2 = cursor.fetchone()
-		if(len(result2)!=0):
-			exp_rrset_id = result2[0]
-			exp_rr_type = result2[1]
+		exp_rrset_id=0
+		exp_rr_type=0
+		while True:
+			random2 = random.randint(max_exp_rrset-table_count_arr[b][3], max_exp_rrset) 
+			select_query_exp_rrset = "SELECT ID,RR_TYPE from "+str2+" WHERE ID=%s"
+			cursor.execute(select_query_exp_rrset, (random2))
+			result4 = cursor.fetchone()
+			if(len(result4)!=0):
+				exp_rrset_id = result4[0]
+				exp_rr_type = result4[1]
+				break
+
+		join_table_exp_rrset = ""
+
+		if(exp_rr_type == 48):
+			join_table_exp_rrset = table_name_arr[7]
+		elif(exp_rr_type == 43):
+			join_table_exp_rrset = table_name_arr[9]
+		elif(exp_rr_type == 52):
+			join_table_exp_rrset = table_name_arr[11]
+		elif(exp_rr_type == 2 or exp_rr_type == 6):
+			join_table_exp_rrset = table_name_arr[5]
+
+		join_query_exp_rrset = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID inner join "+table_name_arr[3]+" on "+table_name_arr[3]+".SET_ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
+		join_query_exp_rrset_without_rrsig = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
+		print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
+		cursor.execute(join_query_exp_rrset, (exp_rrset_id))
+		result5 = cursor.fetchall()
+		print(result5)
+		if(len(result5)==0):
+			cursor.execute(join_query_exp_rrset_without_rrsig, (exp_rrset_id))
+			result6 = cursor.fetchall()
+			print(result6)
+			if(len(result6)==0):
+				print("--> Referential integrity for SS_EXP_RRSET failed\n")
+				break
+		else:
 			break
-	
-	join_table_rrset = ""
-	
-	if(rrset_rr_type == 48):
-		join_table_rrset = table_name_arr[6]
-	elif(rrset_rr_type == 43):
-		join_table_rrset = table_name_arr[8]
-	elif(rrset_rr_type == 52):
-		join_table_rrset = table_name_arr[10]
-	elif(rrset_rr_type == 2 or rrset_rr_type == 6):
-		join_table_rrset = table_name_arr[4]
-
-	join_table_exp_rrset = ""
-
-	if(exp_rr_type == 48):
-		join_table_exp_rrset = table_name_arr[7]
-	elif(exp_rr_type == 43):
-		join_table_exp_rrset = table_name_arr[9]
-	elif(exp_rr_type == 52):
-		join_table_exp_rrset = table_name_arr[11]
-	elif(exp_rr_type == 2 or exp_rr_type == 6):
-		join_table_exp_rrset = table_name_arr[5]
-
-	join_query_rrset = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID inner join "+table_name_arr[2]+" on "+table_name_arr[2]+".SET_ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
-	print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
-	cursor.execute(join_query_rrset, (rrset_id))
-	result3 = cursor.fetchall()
-	print(result3)
-	if(len(result3)==0):
-		print("--> Referential integrity for SS_RRSET failed\n")
-
-	join_query_exp_rrset = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID inner join "+table_name_arr[3]+" on "+table_name_arr[3]+".SET_ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
-	print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
-	cursor.execute(join_query_exp_rrset, (exp_rrset_id))
-	result4 = cursor.fetchall()
-	print(result4)
-	if(len(result4)==0):
-		print("--> Referential integrity for SS_EXP_RRSET failed\n")
 
 	join_query_rrset_exp_rel = "SELECT "+table_name_arr[1]+".ID from "+table_name_arr[1]+" inner join "+table_name_arr[12]+" on "+table_name_arr[1]+".ID = "+table_name_arr[12]+".EXP_SET_ID where "+table_name_arr[1]+".ID=%s"
 	print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 	cursor.execute(join_query_rrset_exp_rel, (exp_rrset_id))
-	result5 = cursor.fetchall()
-	print(result5)
-	if(len(result5)==0):
+	result7 = cursor.fetchall()
+	print(result7)
+	if(len(result7)==0):
 		print("--> Referential integrity for SS_RRSET_EXP_REL failed\n")
 
 if __name__== "__main__":
