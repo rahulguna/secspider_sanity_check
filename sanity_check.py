@@ -171,6 +171,15 @@ def check_sanity_set_tables(a, str1, b, str2):
 				else:
 					status=1
 				index +=2
+		
+		today = datetime.date.today()
+		updated_rows_count = 0
+		select_query_updated_count = "SELECT COUNT(ID) FROM "+str1+" WHERE YEAR(FROM_UNIXTIME(LAST_SEEN)) = %s AND MONTH(FROM_UNIXTIME(LAST_SEEN)) = %s AND DAY(FROM_UNIXTIME(LAST_SEEN)) = %s AND FIRST_SEEN!=LAST_SEEN;"
+		cursor.execute(select_query_updated_count, (today.year,today.month,today.day))
+		for ID in cursor:
+			updated_rows_count=ID[0]
+		if(updated_rows_count==0):
+			print("--> No new rows were updated in "+str1+" table\n")
 	else:
 		if(table_count_arr[a][3] > 0):
 			if(table_count_arr[0][3] > 0):
