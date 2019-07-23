@@ -210,12 +210,14 @@ def check_RRSET_EXP_REL(a, str1):
 		status=0
 		print("--> Rows have been dropped from "+str1+" table\n")
 
-	year=datetime.datetime.now().strftime('%y')
-	cursor.execute("SELECT COUNT(ID) from SS_RRSET_EXP_REL where EXP_SET_ID is not null and YEAR(FROM_UNIXTIME(SEEN)) = %s",(year))
+	month=datetime.datetime.now().strftime('%m')
+	cursor.execute("SELECT COUNT(ID) from SS_RRSET_EXP_REL where EXP_SET_ID is not null and MONTH(FROM_UNIXTIME(SEEN)) = %s",(month))
+	count_exp_id = 0
 	for ID in cursor:
-		if(ID[0]==0):
-			status=0
-			print("--> EXP_SET_ID column in "+str1+" is not being set\n")
+		count_exp_id = ID[0]
+	if(count_exp_id == 0):
+		status=0
+		print("--> EXP_SET_ID column in "+str1+" is not being set\n")
 
 	if(table_count_arr[a][3] > 0):
 		if(table_count_arr[0][3] > 0):
