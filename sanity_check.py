@@ -248,6 +248,10 @@ def check_referential_integrity(a, str1, b, str2):
 	for item in cursor:
 		max_exp_rrset = item[0]
 
+	if(table_count_arr[a][3]<0 or table_count_arr[b][3]<0)
+		print("--> Referential integrity not checked. Rows have been dropped")
+		return
+
 	while True:
 		rrset_id=0
 		rrset_rr_type=0
