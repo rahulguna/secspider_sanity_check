@@ -132,7 +132,7 @@ def check_sanity(str1, range_arr):
 	EXPECTED_COUNT_FROM = range_arr[0]
 	EXPECTED_COUNT_TO = range_arr[1]
 
-	if TOTAL_COUNT<EXPECTED_COUNT_FROM and TOTAL_COUNT>EXPECTED_COUNT_TO:
+	if TOTAL_COUNT<EXPECTED_COUNT_FROM or TOTAL_COUNT>EXPECTED_COUNT_TO:
 		print("--> The sanity check for "+str1+": FAILED\n")
 		return
 
