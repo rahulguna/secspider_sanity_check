@@ -75,10 +75,10 @@ def main():
 	#Check referential integrity
 	check_referential_integrity(0, table_name_arr[0], 1, table_name_arr[1]);
 
-	print("[Table_Name, #Rows in current run, #Rows in previous run, Rows inserted]")
-	for item in table_count_arr:
-		print(item)
-	print("\n")
+	#print("[Table_Name, #Rows in current run, #Rows in previous run, Rows inserted]")
+	#for item in table_count_arr:
+	#	print(item)
+	#print("\n")
 
 	mariadb_connection.close()
 
@@ -95,7 +95,7 @@ def insert_count():		#Insert table count to SS_TABLE_SANITY_CHECK table
 	for item in table_name_arr:
 		insert_into_sanity_table(item)
 
-	print("--> The data for the lastest run is inserted into sanity check table\n")
+	#print("--> The data for the lastest run is inserted into sanity check table\n")
 
 def insert_into_sanity_table(table_name):	#Insert table count to SS_TABLE_SANITY_CHECK table
 
@@ -134,14 +134,14 @@ def retrieve_prev_run_count():		#Retrieve table count for previous run from SS_T
 				table_count_arr[i][2]=row[1]
 			i += 1
 
-def calculate_rows_inserted(a, str1, b, str2):
+def calculate_rows_inserted(a, str1, b, str2):		#calculates rows inserted for RRSET tables
 	if table_count_arr[b][0]==str2:
 		table_count_arr[b][3]=table_count_arr[b][1]-table_count_arr[b][2]
 	if table_count_arr[a][0]==str1:
 		result=table_count_arr[a][2]-table_count_arr[b][3]
 		table_count_arr[a][3]=table_count_arr[a][1]-result
 
-def calculate_rows_inserted_stats_table(a, str1):
+def calculate_rows_inserted_stats_table(a, str1):		#calculates rows inserted for other tables
 	if table_count_arr[a][0]==str1:
 		table_count_arr[a][3]=table_count_arr[a][1]-table_count_arr[a][2]
 
@@ -172,6 +172,7 @@ def check_sanity_set_tables(a, str1, b, str2):
 					status=1
 				index +=2
 		
+		#checks whether rows are getting updated in SS_RRSET table
 		today = datetime.date.today()
 		updated_rows_count = 0
 		select_query_updated_count = "SELECT COUNT(ID) FROM "+str1+" WHERE YEAR(FROM_UNIXTIME(LAST_SEEN)) = %s AND MONTH(FROM_UNIXTIME(LAST_SEEN)) = %s AND DAY(FROM_UNIXTIME(LAST_SEEN)) = %s AND FIRST_SEEN!=LAST_SEEN;"
@@ -278,15 +279,16 @@ def check_referential_integrity(a, str1, b, str2):
 
 		join_query_rrset = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID inner join "+table_name_arr[2]+" on "+table_name_arr[2]+".SET_ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
 		join_query_rrset_without_rrsig = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
-		print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
+		#print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
 		cursor.execute(join_query_rrset, (rrset_id))
 		result2 = cursor.fetchall()
-		print(result2)
+		#print(result2)
 		if(len(result2)==0):
 			cursor.execute(join_query_rrset_without_rrsig, (rrset_id))
 			result3 = cursor.fetchall()
-			print(result3)
+			#print(result3)
 			if(len(result3)==0):
+				print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
 				print("--> Referential integrity for SS_RRSET failed\n")
 				break
 		else:
@@ -318,26 +320,28 @@ def check_referential_integrity(a, str1, b, str2):
 
 		join_query_exp_rrset = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID inner join "+table_name_arr[3]+" on "+table_name_arr[3]+".SET_ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
 		join_query_exp_rrset_without_rrsig = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
-		print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
+		#print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
 		cursor.execute(join_query_exp_rrset, (exp_rrset_id))
 		result5 = cursor.fetchall()
-		print(result5)
+		#print(result5)
 		if(len(result5)==0):
 			cursor.execute(join_query_exp_rrset_without_rrsig, (exp_rrset_id))
 			result6 = cursor.fetchall()
-			print(result6)
+			#print(result6)
 			if(len(result6)==0):
+				print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
 				print("--> Referential integrity for SS_EXP_RRSET failed\n")
 				break
 		else:
 			break
 
 	join_query_rrset_exp_rel = "SELECT "+table_name_arr[1]+".ID from "+table_name_arr[1]+" inner join "+table_name_arr[12]+" on "+table_name_arr[1]+".ID = "+table_name_arr[12]+".EXP_SET_ID where "+table_name_arr[1]+".ID=%s"
-	print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
+	#print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 	cursor.execute(join_query_rrset_exp_rel, (exp_rrset_id))
 	result7 = cursor.fetchall()
-	print(result7)
+	#print(result7)
 	if(len(result7)==0):
+		print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 		print("--> Referential integrity for SS_RRSET_EXP_REL failed\n")
 
 if __name__== "__main__":
