@@ -38,12 +38,12 @@ class AESCipher:
 
 
 if __name__ == '__main__':
-    print('TESTING ENCRYPTION')
-    msg = input('Message...: ')
-    pwd = input('Password..: ')
+    print('ENCRYPTION')
+    msg = input('Enter Password to be encrypted...: ')
+    pwd = input('Enter Passkey..: ')
     print('Ciphertext:', AESCipher(pwd).encrypt(msg).decode('utf-8'))
 
-    print('\nTESTING DECRYPTION')
-    cte = input('Ciphertext: ')
-    pwd = input('Password..: ')
-    print('Message...:', AESCipher(pwd).decrypt(cte).decode('utf-8'))
+    print('\nDECRYPTION')
+    cte = input('Enter Ciphertext: ')
+    pwd = input('Enter Passkey..: ')
+    print('Decrypted Password...:', AESCipher(pwd).decrypt(cte).decode('utf-8'))
