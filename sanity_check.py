@@ -7,6 +7,12 @@ from datetime import timezone
 import sys
 import random 
 import logging
+from hashlib import md5
+from base64 import b64decode
+from base64 import b64encode
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
 
 #configuration settings
 config = configparser.ConfigParser()
@@ -21,11 +27,14 @@ logging.basicConfig(
 
 logging.debug("Secspider Sanity Check\n")
 
-#get password from user
-password  = input("Enter your password to connect database:\n")
-if(password == ""):
-	print("You have not entered any password")
-	sys.exit(0)
+#decrypt password
+passkey = config['ENCRYPTION']['PASSKEY']
+enrypted_password = config['DATABASE']['PASSWORD']
+
+key = md5(passkey.encode('utf8')).digest()       
+raw = b64decode(enrypted_password)
+cipher = AES.new(key, AES.MODE_CBC, raw[:AES.block_size])
+password=unpad(cipher.decrypt(raw[AES.block_size:]), AES.block_size).decode('utf-8')
 
 #database connection
 try:
