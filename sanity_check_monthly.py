@@ -6,6 +6,12 @@ import datetime
 from datetime import timezone
 import sys
 import random 
+from hashlib import md5
+from base64 import b64decode
+from base64 import b64encode
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
 
 #configuration settings
 config = configparser.ConfigParser()
@@ -13,11 +19,14 @@ config.read('config.ini')
 
 print("Secspider Sanity Check\n")
 
-#get password from user
-password  = input("Enter your password to connect database:\n")
-if(password == ""):
-	print("You have not entered any password")
-	sys.exit(0)
+#decrypt password
+passkey = config['ENCRYPTION']['PASSKEY']
+enrypted_password = config['DATABASE']['PASSWORD']
+
+key = md5(passkey.encode('utf8')).digest()       
+raw = b64decode(enrypted_password)
+cipher = AES.new(key, AES.MODE_CBC, raw[:AES.block_size])
+password=unpad(cipher.decrypt(raw[AES.block_size:]), AES.block_size).decode('utf-8')
 
 #database connection
 try:
@@ -44,9 +53,9 @@ def calculate_expected_behaviour(str1):
 	one_month = datetime.timedelta(days=31)
 	two_month = datetime.timedelta(days=62)
 	three_month = datetime.timedelta(days=92)
-	#one_month_back = today - one_month
-	#two_month_back = today - two_month
-	#three_month_back = today - three_month
+	one_month_back = today - one_month
+	two_month_back = today - two_month
+	three_month_back = today - three_month
 	
 	last_month_total_count = 0
 	two_month_total_count = 0
@@ -55,9 +64,9 @@ def calculate_expected_behaviour(str1):
 	two_month_zone_count = 0
 	three_month_zone_count = 0
 
-	one_month_back = datetime.date(2018, 10, 21)
-	two_month_back = datetime.date(2018, 7, 21)
-	three_month_back = datetime.date(2018, 4, 21)
+	#one_month_back = datetime.date(2018, 10, 21)
+	#two_month_back = datetime.date(2018, 7, 21)
+	#three_month_back = datetime.date(2018, 4, 21)
 
 	select_query_total_count = "SELECT COUNT(ID) AS COUNT FROM "+str1+" WHERE YEAR(FROM_UNIXTIME(FIRST_SEEN)) = %s AND MONTH(FROM_UNIXTIME(FIRST_SEEN)) = %s"
 	cursor.execute(select_query_total_count, (one_month_back.year,one_month_back.month))
@@ -115,10 +124,10 @@ def calculate_expected_behaviour(str1):
 def check_sanity(str1, range_arr):
 	print("--> Sanity Check for "+str1+" table")
 
-	#year = datetime.date.today().year
-	#month = datetime.date.today().month
-	year = 2018
-	month = 10
+	year = datetime.date.today().year
+	month = datetime.date.today().month
+	#year = 2018
+	#month = 10
 
 	TOTAL_COUNT = 0
 
