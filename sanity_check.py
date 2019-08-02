@@ -6,12 +6,20 @@ import datetime
 from datetime import timezone
 import sys
 import random 
+import logging
 
 #configuration settings
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-print("Secspider Sanity Check\n")
+log_level = config['LOG']['LEVEL']
+logging.basicConfig(
+    filename="sanity_check.log",
+    level=log_level,
+    format="%(asctime)s:%(levelname)s:%(message)s"
+    )
+
+logging.debug("Secspider Sanity Check\n")
 
 #get password from user
 password  = input("Enter your password to connect database:\n")
@@ -23,11 +31,12 @@ if(password == ""):
 try:
 	user = config['DATABASE']['USER'] # 'username for database'
 	database_name = config['DATABASE']['DATABASE_NAME'] # 'database name'
-	print("--> Connecting to database - "+database_name+"\n")
+	logging.debug("--> Connecting to database - "+database_name+"\n")
 	mariadb_connection = mariadb.connect(user=user, password=password, database=database_name)
 	cursor = mariadb_connection.cursor()
 except:
 	print("Access denied or config file not found\n")
+	logging.error("Access denied or config file not found\n")
 	sys.exit(1)
 
 #global variables
@@ -75,10 +84,10 @@ def main():
 	#Check referential integrity
 	check_referential_integrity(0, table_name_arr[0], 1, table_name_arr[1]);
 
-	#print("[Table_Name, #Rows in current run, #Rows in previous run, Rows inserted]")
-	#for item in table_count_arr:
-	#	print(item)
-	#print("\n")
+	logging.debug("[Table_Name, #Rows in current run, #Rows in previous run, Rows inserted]")
+	for item in table_count_arr:
+		logging.debug(item)
+	logging.debug("-------------------------------------------------------------------------------\n")
 
 	mariadb_connection.close()
 
@@ -95,7 +104,7 @@ def insert_count():		#Insert table count to SS_TABLE_SANITY_CHECK table
 	for item in table_name_arr:
 		insert_into_sanity_table(item)
 
-	#print("--> The data for the lastest run is inserted into sanity check table\n")
+	logging.debug("--> The data for the lastest run is inserted into sanity check table\n")
 
 def insert_into_sanity_table(table_name):	#Insert table count to SS_TABLE_SANITY_CHECK table
 
@@ -121,6 +130,7 @@ def retrieve_prev_run_count():		#Retrieve table count for previous run from SS_T
 	runs = cursor.fetchall()
 	if(len(runs)==0):
 		print("--> There are no previous data in the sanity check table. Please run the sanity check again\n")
+		logging.error("--> There are no previous data in the sanity check table. Please run the sanity check again\n")
 		sys.exit(0)
 	for ID in runs:
 		prev_run=ID[0]
@@ -150,9 +160,11 @@ def check_sanity_set_tables(a, str1, b, str2):
 	if(table_count_arr[b][3] < 0):
 		status=0
 		print("--> Rows have been dropped from "+str2+" table\n")
+		logging.error("--> Rows have been dropped from "+str2+" table\n")
 	if(table_count_arr[a][3] < 0):
 		status=0
 		print("--> Rows have been dropped from "+str1+" table\n")
+		logging.error("--> Rows have been dropped from "+str1+" table\n")
 	
 	if(a==0 and b==1):
 		status=0
@@ -167,6 +179,7 @@ def check_sanity_set_tables(a, str1, b, str2):
 			while(index<=10):
 				if(table_count_arr[index][3] != 0):
 					print("--> The sanity check for "+str1+": FAILED - Condition 1\n")
+					logging.error("--> The sanity check for "+str1+": FAILED - Condition 1\n")
 					return
 				else:
 					status=1
@@ -181,6 +194,7 @@ def check_sanity_set_tables(a, str1, b, str2):
 			updated_rows_count=ID[0]
 		if(updated_rows_count==0):
 			print("--> No new rows were updated in "+str1+" table\n")
+			logging.error("--> No new rows were updated in "+str1+" table\n")
 	else:
 		if(table_count_arr[a][3] > 0):
 			if(table_count_arr[0][3] > 0):
@@ -188,6 +202,7 @@ def check_sanity_set_tables(a, str1, b, str2):
 			else:
 				status=0
 				print("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
+				logging.error("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
 
 
 	if status==1:
@@ -195,21 +210,25 @@ def check_sanity_set_tables(a, str1, b, str2):
 		#print("--> The sanity check for "+str1+": PASSED\n")
 	else:
 		print("--> The sanity check for "+str1+": FAILED\n")
+		logging.error("--> The sanity check for "+str1+": FAILED\n")
 
 def	check_stats_tables(a, str1):
 	if table_count_arr[a][0]==str1:
 		if(table_count_arr[a][3] < 0):
 			print("--> Rows have been dropped from "+str1+" table\n")
+			logging.error("--> Rows have been dropped from "+str1+" table\n")
 
 	if table_count_arr[0][3] > 0:
 		if(table_count_arr[a][3] == 0):
 			print("--> No new insertions in "+str1+" table\n")
+			logging.error("--> No new insertions in "+str1+" table\n")
 
 def check_RRSET_EXP_REL(a, str1):
 	status=1
 	if(table_count_arr[a][3] < 0):
 		status=0
 		print("--> Rows have been dropped from "+str1+" table\n")
+		logging.error("--> Rows have been dropped from "+str1+" table\n")
 
 	month=datetime.datetime.now().strftime('%m')
 	cursor.execute("SELECT COUNT(ID) from SS_RRSET_EXP_REL where EXP_SET_ID is not null and MONTH(FROM_UNIXTIME(SEEN)) = %s",(month))
@@ -219,6 +238,7 @@ def check_RRSET_EXP_REL(a, str1):
 	if(count_exp_id == 0):
 		status=0
 		print("--> EXP_SET_ID column in "+str1+" is not being set\n")
+		logging.error("--> EXP_SET_ID column in "+str1+" is not being set\n")
 
 	if(table_count_arr[a][3] > 0):
 		if(table_count_arr[0][3] > 0):
@@ -226,12 +246,14 @@ def check_RRSET_EXP_REL(a, str1):
 		else:
 			status=0
 			print("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
+			logging.error("--> "+str1+" tables has values inserted in it, but "+table_count_arr[0][0]+" does not have values inserted\n")
 
 	if status==1:
 		pass
 		#print("--> The sanity check for "+str1+": PASSED\n")
 	else:
 		print("--> The sanity check for "+str1+": FAILED\n")
+		logging.error("--> The sanity check for "+str1+": FAILED\n")
 
 def check_referential_integrity(a, str1, b, str2):
 	today = datetime.date.today()
@@ -251,6 +273,7 @@ def check_referential_integrity(a, str1, b, str2):
 
 	if(table_count_arr[a][3]<0 or table_count_arr[b][3]<0):
 		print("--> Referential integrity not checked. Rows have been dropped")
+		logging.error("--> Referential integrity not checked. Rows have been dropped")
 		return
 
 	while True:
@@ -279,17 +302,19 @@ def check_referential_integrity(a, str1, b, str2):
 
 		join_query_rrset = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID inner join "+table_name_arr[2]+" on "+table_name_arr[2]+".SET_ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
 		join_query_rrset_without_rrsig = "SELECT "+table_name_arr[0]+".ID, "+table_name_arr[0]+".RR_TYPE from "+table_name_arr[0]+" inner join "+join_table_rrset+" on "+table_name_arr[0]+".ID = "+join_table_rrset+".SET_ID where "+table_name_arr[0]+".ID=%s"
-		#print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
+		logging.debug("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
 		cursor.execute(join_query_rrset, (rrset_id))
 		result2 = cursor.fetchall()
-		#print(result2)
+		logging.debug(result2)
 		if(len(result2)==0):
 			cursor.execute(join_query_rrset_without_rrsig, (rrset_id))
 			result3 = cursor.fetchall()
-			#print(result3)
+			logging.debug(result3)
 			if(len(result3)==0):
 				print("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
 				print("--> Referential integrity for SS_RRSET failed\n")
+				logging.error("--> The SS_RRSET ID tested for referential integrity: ",rrset_id)
+				logging.error("--> Referential integrity for SS_RRSET failed\n")
 				break
 		else:
 			break
@@ -320,29 +345,33 @@ def check_referential_integrity(a, str1, b, str2):
 
 		join_query_exp_rrset = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID inner join "+table_name_arr[3]+" on "+table_name_arr[3]+".SET_ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
 		join_query_exp_rrset_without_rrsig = "SELECT "+table_name_arr[1]+".ID, "+table_name_arr[1]+".RR_TYPE from "+table_name_arr[1]+" inner join "+join_table_exp_rrset+" on "+table_name_arr[1]+".ID = "+join_table_exp_rrset+".SET_ID where "+table_name_arr[1]+".ID=%s"
-		#print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
+		logging.debug("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
 		cursor.execute(join_query_exp_rrset, (exp_rrset_id))
 		result5 = cursor.fetchall()
-		#print(result5)
+		logging.debug(result5)
 		if(len(result5)==0):
 			cursor.execute(join_query_exp_rrset_without_rrsig, (exp_rrset_id))
 			result6 = cursor.fetchall()
-			#print(result6)
+			logging.debug(result6)
 			if(len(result6)==0):
 				print("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
 				print("--> Referential integrity for SS_EXP_RRSET failed\n")
+				logging.error("--> The SS_EXP_RRSET ID tested for referential integrity: ",exp_rrset_id)
+				logging.error("--> Referential integrity for SS_EXP_RRSET failed\n")
 				break
 		else:
 			break
 
 	join_query_rrset_exp_rel = "SELECT "+table_name_arr[1]+".ID from "+table_name_arr[1]+" inner join "+table_name_arr[12]+" on "+table_name_arr[1]+".ID = "+table_name_arr[12]+".EXP_SET_ID where "+table_name_arr[1]+".ID=%s"
-	#print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
+	logging.debug("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 	cursor.execute(join_query_rrset_exp_rel, (exp_rrset_id))
 	result7 = cursor.fetchall()
-	#print(result7)
+	logging.debug(result7)
 	if(len(result7)==0):
 		print("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
 		print("--> Referential integrity for SS_RRSET_EXP_REL failed\n")
+		logging.error("--> The SS_RRSET_EXP_REL ID tested for referential integrity: ",exp_rrset_id)
+		logging.error("--> Referential integrity for SS_RRSET_EXP_REL failed\n")
 
 if __name__== "__main__":
 	main()
