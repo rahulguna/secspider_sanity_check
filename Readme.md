@@ -28,4 +28,7 @@ Step6:
 Run the Sanity_Check_ddl.sql file in the database.
 
 Step7:
-Provide the database configuration details in the config ini. Keep the config.ini in the same directory same the python program file
+Provide the database configuration details in the config ini. 
+  7.1 Encrypt the database password using encryption.py 
+  7.2 Update the encrypted password and the passkey in the config.ini file
+  7.3 Keep the config.ini in the same directory same the python program file
