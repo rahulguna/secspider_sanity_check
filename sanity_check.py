@@ -22,7 +22,7 @@ log_level = config['LOG']['LEVEL']
 logging.basicConfig(
     filename="sanity_check.log",
     level=log_level,
-    format="%(asctime)s:%(levelname)s:%(message)s"
+    format="%(asctime)s:%(levelname)s:[%(filename)s:%(lineno)d]:%(message)s"
     )
 
 logging.debug("Secspider Sanity Check\n")
