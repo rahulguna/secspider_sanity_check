@@ -28,7 +28,7 @@ logging.basicConfig(
 logging.debug("Secspider Sanity Check\n")
 
 #decrypt password
-passkey = config['ENCRYPTION']['PASSKEY']
+passkey = 'rfherf34843h34hj83f'
 enrypted_password = config['DATABASE']['PASSWORD']
 
 key = md5(passkey.encode('utf8')).digest()       
