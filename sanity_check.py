@@ -204,6 +204,25 @@ def check_sanity_set_tables(a, str1, b, str2):
 		if(updated_rows_count==0):
 			print("--> No new rows were updated in "+str1+" table\n")
 			logging.error("--> No new rows were updated in "+str1+" table\n")
+
+		#checks whether FIRST SEEN and LAST SEEN are same in SS_EXP_RRSET table
+		today = datetime.date.today()
+		rows_not_same_count = 0
+		rows_same_count = 0
+		select_query_check_not_same_count = "SELECT COUNT(ID) FROM "+str2+" WHERE YEAR(FROM_UNIXTIME(LAST_SEEN)) = %s AND MONTH(FROM_UNIXTIME(LAST_SEEN)) = %s AND FIRST_SEEN!=LAST_SEEN;"
+		select_query_check_same_count = "SELECT COUNT(ID) FROM "+str2+" WHERE YEAR(FROM_UNIXTIME(LAST_SEEN)) = %s AND MONTH(FROM_UNIXTIME(LAST_SEEN)) = %s;"
+		
+		cursor.execute(select_query_check_not_same_count, (today.year,today.month))
+		for ID in cursor:
+			rows_not_same_count=ID[0]
+
+		cursor.execute(select_query_check_same_count, (today.year,today.month))
+		for ID in cursor:
+			rows_same_count=ID[0]
+		if(rows_same_count==rows_not_same_count):
+			print("--> All rows in "+str2+" table have the same FIRST SEEN and LAST SEEN values\n")
+			logging.error("--> All rows in "+str2+" table have the same FIRST SEEN and LAST SEEN values\n")
+		
 	else:
 		if(table_count_arr[a][3] > 0):
 			if(table_count_arr[0][3] > 0):
