@@ -1,4 +1,4 @@
-Prerequiste required to run the sanity check:
+Instrutions to run the sanity check:
 
 Step1: 
 Install Python 3.7.3
@@ -25,12 +25,20 @@ $python3 -m pip install PyCryptodome
 ```
 
 Step6:
-Run the Sanity_Check_ddl.sql file in the database.
+Run the create_sanity_check_table.sql file in the database for creation of SS_TABLE_SANITY_CHECK.
 
 Step7:
 Provide the database configuration details in the config ini. 
 ```
 7.1 Encrypt the database password using encryption.py 
-7.2 Update the encrypted password and the passkey in the config.ini file
-7.3 Keep the config.ini in the same directory same the python program file
+7.2 The passkey is hard coded.
+7.3 Update the encrypted password in the config.ini file
+7.4 Keep the config.ini in the same directory same the python program file
+```
+
+Step8:
+Run the sanity script using the command:
+```
+python3 sanity_check.py
+python3 sanity_check_monthly.py
 ```
