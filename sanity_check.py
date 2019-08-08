@@ -219,7 +219,7 @@ def check_sanity_set_tables(a, str1, b, str2):
 		cursor.execute(select_query_check_same_count, (today.year,today.month))
 		for ID in cursor:
 			rows_same_count=ID[0]
-		if(rows_same_count==rows_not_same_count):
+		if(rows_same_count!=rows_not_same_count):
 			print("--> All rows in "+str2+" table have the same FIRST SEEN and LAST SEEN values\n")
 			logging.error("--> All rows in "+str2+" table have the same FIRST SEEN and LAST SEEN values\n")
 		
