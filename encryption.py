@@ -38,12 +38,13 @@ class AESCipher:
 
 
 if __name__ == '__main__':
+    pwd = 'rfherf34843h34hj83f'
+    
     print('ENCRYPTION')
     msg = input('Enter Password to be encrypted...: ')
-    pwd = input('Enter Passkey..: ')
     print('Ciphertext:', AESCipher(pwd).encrypt(msg).decode('utf-8'))
-
+    
     print('\nDECRYPTION')
     cte = input('Enter Ciphertext: ')
-    pwd = input('Enter Passkey..: ')
     print('Decrypted Password...:', AESCipher(pwd).decrypt(cte).decode('utf-8'))
+
