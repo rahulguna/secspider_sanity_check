@@ -44,4 +44,4 @@ python3 sanity_check_monthly.py
 ```
 
 Step9:
-When the scripts are executed, the errors will be printed on the console. Please at the sanity_check.log file for debugging. 
+When the scripts are executed, the errors will be printed on the console. Please look at the sanity_check.log file for more information. 
