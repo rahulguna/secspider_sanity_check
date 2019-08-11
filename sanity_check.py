@@ -20,9 +20,10 @@ config.read('config.ini')
 
 log_level = config['LOG']['LEVEL']
 logging.basicConfig(
-    filename="sanity_check.log",
-    level=log_level,
-    format="%(asctime)s:%(levelname)s:[%(filename)s:%(lineno)d]:%(message)s"
+	filename="sanity_check.log",
+	level=log_level,
+	filemode='w',
+	format="%(asctime)s:%(levelname)s:[%(filename)s:%(lineno)d]:%(message)s"
     )
 
 logging.debug("Secspider Sanity Check\n")
